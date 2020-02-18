@@ -1,0 +1,29 @@
+{
+    "name": "shudd3r/ci-test",
+    "description": "Test CI skeleton project",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Shudd3r",
+            "email": "q3.shudder@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Shudd3r\\CI\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Shudd3r\\CI\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^7.4"
+    },
+    "require-dev": {
+        "polymorphine/dev": "@dev"
+    }
+}

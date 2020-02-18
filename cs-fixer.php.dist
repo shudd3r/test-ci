@@ -1,0 +1,5 @@
+<?php
+
+use Polymorphine\Dev\FixerFactory;
+
+return FixerFactory::createFor('Shudd3r/CI', __DIR__);
