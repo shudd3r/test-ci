@@ -3,16 +3,36 @@ on: [push, pull_request]
 
 jobs:
   full-build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      matrix:
+        operating-system: [ubuntu-latest]
+        php-versions: ["7.4"]
+    env:
+      extensions: pcov, dom, json, libxml, mbstring, pdo_sqlite, soap, xml, xmlwriter
+      key: cache-v1
     steps:
       - name: "Checkout"
         uses: actions/checkout@v2
-      - name: "Install PHP with extensions"
-        uses: shivammathur/setup-php@v1
+      - name: "Setup PHP extensions cache environment"
+        id: cache-env
+        uses: shivammathur/cache-extensions@v1
         with:
-          php-version: "7.4"
+          php-version: ${{ matrix.php-versions }}
+          extensions: ${{ env.extensions }}
+          key: ${{ env.key }}
+      - name: "Cache PHP extensions"
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.cache-env.outputs.dir }}
+          key: ${{ steps.cache-env.outputs.key }}
+          restore-keys: ${{ steps.cache-env.outputs.key }}
+      - name: "Install PHP with extensions"
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
           coverage: pcov
-          extensions: dom, json, libxml, mbstring, pdo_sqlite, soap, xml, xmlwriter
+          extensions: ${{ env.extensions }}
           ini-values: assert.exception=1, zend.assertions=1
       - name: "Validate composer.json"
         run: composer validate
@@ -28,9 +48,7 @@ jobs:
       - name: "Coding standard Php-CS-Fixer checks"
         run: vendor/bin/php-cs-fixer --dry-run -v --config=cs-fixer.php.dist --path-mode=intersection fix src tests
       - name: "Coding standard CodeSniffer checks"
-        run: |
-          vendor/bin/phpcs --extensions=php --standard=$GITHUB_WORKSPACE/vendor/polymorphine/dev/phpcs.xml src
-          vendor/bin/phpcs --extensions=php --standard=$GITHUB_WORKSPACE/vendor/polymorphine/dev/phpcs.xml tests
+        run: vendor/bin/phpcs --extensions=php --standard=$GITHUB_WORKSPACE/vendor/polymorphine/dev/phpcs.xml src tests
       - name: "Run PhpUnit tests with coverage"
         run: |
           mkdir -p build/logs
@@ -47,10 +65,10 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v2
       - name: "Install PHP with extensions"
-        uses: shivammathur/setup-php@v1
+        uses: shivammathur/setup-php@v2
         with:
           php-version: "7.4"
-          coverage: pcov
+          coverage: none
           extensions: dom, json, libxml, mbstring, pdo_sqlite, soap, xml, xmlwriter
           ini-values: assert.exception=1, zend.assertions=1
       - name: "Setup composer cache"
